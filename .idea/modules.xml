@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/CS492_SWARMAI.iml" filepath="$PROJECT_DIR$/.idea/CS492_SWARMAI.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/CS492_SwarmAI.iml" filepath="$PROJECT_DIR$/.idea/CS492_SwarmAI.iml" />
     </modules>
   </component>
 </project>
