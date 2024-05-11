@@ -2,7 +2,8 @@ import torch
 import random
 import numpy as np
 from collections import deque # store memory
-from game import SnakeGameAI,Direction, Point, BLOCK_SIZE
+from game import SnakeGameAI, Point, BLOCK_SIZE
+from environment import Direction
 from model import Linear_QNet, QTrainer
 from helper import plot
 
@@ -10,18 +11,46 @@ MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
 LR = 0.001
 
+'''
+- State
+Shark (danger) direction
+Other agent's direction
+
+- Action
+move up/down/left/right
+
+
+'''
 
 class Agent:
+    '''
+    Agent를 train할때 필요한 함수들을 모음
+    실제 agent는 game.py에 구현되어 있음
+
+    action:
+    up down left right
+
+    state:
+    - hidden state: absolute coordinate of the fish
+    - observed state: relative coordinates of other fish / shark
+
+
+    '''
 
     def __init__(self):
         self.n_games = 0
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate 0~1
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(11,256,3) # 11 input, 3 action outputs
+        self.model = Linear_QNet(11,256,4) # 11+8 input, 3 action outputs
         self.trainer = QTrainer(self.model, lr = LR, gamma = self.gamma)
 
-    def get_state(self, game):
+
+    def reset(self):
+        pass
+
+
+    def get_state(self, game): # game 으로부터 agent의 state를 계산
         head = game.snake[0]
         # to check whether snake hits the bdry (check danger)
         point_l = Point(head.x - BLOCK_SIZE, head.y)
@@ -35,24 +64,23 @@ class Agent:
         dir_u = game.direction == Direction.UP
         dir_d = game.direction == Direction.DOWN
 
+        danger_straight = (dir_r and game.is_collision(point_r)[0]) or (dir_u and game.is_collision(point_u)[0]) or (dir_d and game.is_collision(point_d)[0]) or (dir_l and game.is_collision(point_l)[0])
+
         state = [
             # Danger straight
-            (dir_r and game.is_collision(point_r)) or
-            (dir_u and game.is_collision(point_u)) or
-            (dir_d and game.is_collision(point_d)) or
-            (dir_l and game.is_collision(point_l)),
+            danger_straight,
 
             # Danger right
-            (dir_r and game.is_collision(point_d)) or
-            (dir_u and game.is_collision(point_r)) or
-            (dir_d and game.is_collision(point_l)) or
-            (dir_l and game.is_collision(point_u)),
+            (dir_r and game.is_collision(point_d)[0]) or
+            (dir_u and game.is_collision(point_r)[0]) or
+            (dir_d and game.is_collision(point_l)[0]) or
+            (dir_l and game.is_collision(point_u)[0]),
 
             # Danger left
-            (dir_r and game.is_collision(point_u)) or
-            (dir_u and game.is_collision(point_l)) or
-            (dir_d and game.is_collision(point_r)) or
-            (dir_l and game.is_collision(point_d)),
+            (dir_r and game.is_collision(point_u)[0]) or
+            (dir_u and game.is_collision(point_l)[0]) or
+            (dir_d and game.is_collision(point_r)[0]) or
+            (dir_l and game.is_collision(point_d)[0]),
 
             # Move direction
             dir_l,
@@ -62,9 +90,10 @@ class Agent:
 
             # Food location
             game.food.x < game.head.x, # food left
-            game.food.x > game.head.x,  # food right
+            game.food.x > game.head.x, # food right
             game.food.y < game.head.y, # food up
-            game.food.y > game.head.y # food down
+            game.food.y > game.head.y, # food down
+
         ]
 
         return np.array(state, dtype = int)
@@ -89,9 +118,9 @@ class Agent:
     def get_action(self, state):
         # random moves: tradeoff btw exploration / exploitation
         self.epsilon = 80 - self.n_games # parameter
-        final_move = [0,0,0]
+        final_move = [0,0,0,0]
         if random.randint(0,200) < self.epsilon:
-            move = random.randint(0,2)
+            move = random.randint(0,3)
             final_move[move] = 1
         else:
             state0 = torch.tensor(state, dtype=torch.float)
@@ -149,6 +178,7 @@ def train():
 
 if __name__ == '__main__':
     train()
+
 
 
 

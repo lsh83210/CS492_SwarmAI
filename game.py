@@ -1,27 +1,13 @@
 import pygame
 import random
-from enum import Enum
 from collections import namedtuple
 import numpy as np
+from environment import Direction, Shark
 
 pygame.init()
 
 
 font = pygame.font.SysFont('arial', 25)
-
-# reset
-# reward
-# play(action) -> direction
-# game_iteration
-# is_collision
-
-
-
-class Direction(Enum):
-    RIGHT = 1
-    LEFT = 2
-    UP = 3
-    DOWN = 4
 
 
 Point = namedtuple('Point', 'x, y')
@@ -34,7 +20,7 @@ BLUE2 = (0, 100, 255)
 BLACK = (0, 0, 0)
 
 BLOCK_SIZE = 20
-SPEED = 60
+SPEED = 20#60
 
 
 class SnakeGameAI:
@@ -44,7 +30,7 @@ class SnakeGameAI:
         self.h = h
         # init display
         self.display = pygame.display.set_mode((self.w, self.h))
-        pygame.display.set_caption('Snake')
+        pygame.display.set_caption('Swarm')
         self.clock = pygame.time.Clock()
         self.reset()
 
@@ -53,10 +39,8 @@ class SnakeGameAI:
         self.direction = Direction.RIGHT
 
         self.head = Point(self.w / 2, self.h / 2)
-        self.snake = [self.head,
-                      Point(self.head.x - BLOCK_SIZE, self.head.y),
-                      Point(self.head.x - (2 * BLOCK_SIZE), self.head.y)]
-        self.tail = self.snake[-1]
+        self.snake = [self.head]
+
         self.score = 0
         self.food = None
         self._place_food()
@@ -80,13 +64,12 @@ class SnakeGameAI:
 
         # 2. move
         self._move(action)  # update the head
-        self.snake.insert(0, self.head)
-        self.tail = self.snake[-1]
 
         # 3. check if game over
         reward = 0
         game_over = False
-        if self.is_collision()[0] or self.frame_iteration > 50*len(self.snake): # nothing happens for too long
+        #if self.is_collision()[0] or self.frame_iteration > 1000: # nothing happens for too long
+        if self.is_collision()[0]:
             game_over = True
             reward = -10
             return reward, game_over, self.score
@@ -97,8 +80,6 @@ class SnakeGameAI:
             reward = 10
             self.frame_iteration = 0
             self._place_food()
-        else: # get rid of tail after moving
-            self.snake.pop()
 
         # 5. update ui and clock
         self._update_ui()
@@ -138,31 +119,18 @@ class SnakeGameAI:
         pygame.display.flip()
 
     def _move(self, action):
-        # [straight, right turn, left turn]
-        clock_wise = [Direction.RIGHT, Direction.DOWN, Direction.LEFT, Direction.UP]
-        idx = clock_wise.index(self.direction) # get the index of current direction
-        if np.array_equal(action, [1,0,0]):
-            new_dir = clock_wise[idx] # no change
-        elif np.array_equal(action, [0,1,0]):
-            next_idx = (idx+1)%4
-            new_dir = clock_wise[next_idx] # r -> d -> l -> u
-        else: # [0,0,1]
-            next_idx = (idx-1)%4
-            new_dir = clock_wise[next_idx] # r -> u -> l -> d
-
-        self.direction = new_dir
-
         x = self.head.x
         y = self.head.y
-
-        if self.direction == Direction.RIGHT:
+        # left down right up
+        if np.array_equal(action, [0,0,1,0]): # RIGHT
             x += BLOCK_SIZE
-        elif self.direction == Direction.LEFT:
+        elif np.array_equal(action, [1,0,0,0]): # LEFT
             x -= BLOCK_SIZE
-        elif self.direction == Direction.DOWN:
+        elif np.array_equal(action, [0,1,0,0]): # DOWN
             y += BLOCK_SIZE
-        elif self.direction == Direction.UP:
+        elif np.array_equal(action, [0,0,0,1]): # UP
             y -= BLOCK_SIZE
 
         self.head = Point(x, y)
+        self.snake[0] = self.head
 
