@@ -35,7 +35,7 @@ class SnakeGameAI:
     def __init__(self, w=640, h=640):
         self.w = w
         self.h = h
-        self.transition_step = self.w//(8*BLOCK_SIZE)# must choose 'the same action that crosses the boundary' 5 times to cross the boundary
+        self.transition_step = self.w//(4*BLOCK_SIZE)# must choose 'the same action that crosses the boundary' 5 times to cross the boundary
         # init display
         self.display = pygame.display.set_mode((self.w, self.h))
         pygame.display.set_caption('Swarm')
@@ -55,8 +55,8 @@ class SnakeGameAI:
         self.fish_list = [Point(self.w / 2 + BLOCK_SIZE*(i - half_num)*3 , self.h / 2 + BLOCK_SIZE*(i- half_num)*3, 0) for i in range(self.init_fish_num)]
 
         self.score = 0
-        self.food = None
-        self._place_food()
+        # self.food = None
+        # self._place_food()
         self.frame_iteration = 0
 
 
@@ -92,12 +92,12 @@ class SnakeGameAI:
             reward = REWARD_GET_EATEN
             return reward, game_over, self.score
 
-
-        # place new food or just move
-        if self.food in self.fish_list:
-            reward = REWARD_FOOD
-            self.frame_iteration = 0
-            self._place_food()
+        # food
+        # # place new food or just move
+        # if self.food in self.fish_list:
+        #     reward = REWARD_FOOD
+        #     self.frame_iteration = 0
+        #     self._place_food()
 
         # 5. update ui and clock
         self._update_ui()
@@ -141,7 +141,7 @@ class SnakeGameAI:
             pygame.draw.rect(self.display, GREEN1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
             pygame.draw.rect(self.display, GREEN2, pygame.Rect(pt.x + 4, pt.y + 4, 12, 12))
         # food
-        pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
+        # pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
         # shark
         pygame.draw.rect(self.display, BLUE1, pygame.Rect(self.shark.pos[0], self.shark.pos[1], BLOCK_SIZE, BLOCK_SIZE))
         pygame.draw.rect(self.display, BLUE2, pygame.Rect(self.shark.pos[0]+4, self.shark.pos[1]+4, 12, 12))

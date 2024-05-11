@@ -47,7 +47,7 @@ class Agent:
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate 0~1
         self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(6 + 2*(INITIAL_FISH_NUM-1),256,4) # 11+8 input, 3 action outputs
+        self.model = Linear_QNet(2 + 2*(INITIAL_FISH_NUM-1),256,4) # 2(shark) + 2*(#fish - 1) input, 4 action outputs
         self.trainer = QTrainer(self.model, lr = LR, gamma = self.gamma)
 
     def reset(self):
@@ -80,10 +80,10 @@ class Agent:
             get_sign(shark_y),
 
             # Food location
-            game.food.x < game.fish.x, # food left
-            game.food.x > game.fish.x, # food right
-            game.food.y < game.fish.y, # food up
-            game.food.y > game.fish.y, # food down
+            # game.food.x < game.fish.x, # food left
+            # game.food.x > game.fish.x, # food right
+            # game.food.y < game.fish.y, # food up
+            # game.food.y > game.fish.y, # food down
 
         ] + other_fish_state
         return np.array(state, dtype = int) # float로 바꾸려면 dtype=float
