@@ -17,6 +17,7 @@ WHITE = (255, 255, 255)
 RED = (200, 0, 0)
 GREEN1 = (0, 250, 0)
 GREEN2 = (0, 200, 100)
+
 BLUE1 = (0, 0, 255)
 BLUE2 = (0, 100, 255)
 BLACK = (0, 0, 0)
@@ -25,14 +26,15 @@ BLOCK_SIZE = 20
 SPEED = 20#60
 
 REWARD_EVERY_STEP = 1
-REWARD_GET_EATEN = -100
-REWARD_FOOD = 1000 # 없애도 되는 기능
-INITIAL_FISH_NUM = 5
+INITIAL_FISH_NUM = 10#5
+REWARD_GET_EATEN = -200//INITIAL_FISH_NUM # we want survival of at least 200 steps
+REWARD_FOOD = 100 # 없애도 되는 기능
+
 
 
 class SnakeGameAI:
 
-    def __init__(self, w=640, h=640):
+    def __init__(self, w=800, h=800): #w=640, h=640
         self.w = w
         self.h = h
         self.transition_step = self.w//(4*BLOCK_SIZE)# must choose 'the same action that crosses the boundary' 5 times to cross the boundary
@@ -52,7 +54,7 @@ class SnakeGameAI:
 
         half_num = self.init_fish_num//2
 
-        self.fish_list = [Point(self.w / 2 + BLOCK_SIZE*(i - half_num)*3 , self.h / 2 + BLOCK_SIZE*(i- half_num)*3, 0) for i in range(self.init_fish_num)]
+        self.fish_list = [Point(self.w / 2 + BLOCK_SIZE*(i - half_num)*2 , self.h / 2 + BLOCK_SIZE*(i- half_num)*2, 0) for i in range(self.init_fish_num)]
 
         self.score = 0
         # self.food = None
@@ -87,7 +89,7 @@ class SnakeGameAI:
         reward = REWARD_EVERY_STEP # +1 for every step
         game_over = False
         #if self.is_collision()[0] or self.frame_iteration > 1000: # nothing happens for too long
-        if len(self.fish_list) == 0:
+        if len(self.fish_list) == 0 or self.frame_iteration > 1000: # survives long enough
             game_over = True
             reward = REWARD_GET_EATEN
             return reward, game_over, self.score
@@ -137,9 +139,22 @@ class SnakeGameAI:
         self.display.fill(BLACK)
 
         # fishes
+        cnt = 0
         for pt in self.fish_list:
+            ''' # old draw function
             pygame.draw.rect(self.display, GREEN1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
-            pygame.draw.rect(self.display, GREEN2, pygame.Rect(pt.x + 4, pt.y + 4, 12, 12))
+            if cnt == self.shark.target_fish_idx: # targetted fish color is different
+                pygame.draw.rect(self.display, RED, pygame.Rect(pt.x + 4, pt.y + 4, 12, 12))
+            else:
+                pygame.draw.rect(self.display, GREEN2, pygame.Rect(pt.x + 4, pt.y + 4, 12, 12))
+            '''
+            if cnt == self.shark.target_fish_idx: # targetted fish color is different
+                pygame.draw.rect(self.display, RED, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
+                # pygame.draw.rect(self.display, RED, pygame.Rect(pt.x + 4, pt.y + 4, 12, 12))
+            else:
+                pygame.draw.rect(self.display, GREEN1, pygame.Rect(pt.x, pt.y, BLOCK_SIZE, BLOCK_SIZE))
+                # pygame.draw.rect(self.display, GREEN2, pygame.Rect(pt.x + 4, pt.y + 4, 12, 12))
+            cnt += 1
         # food
         # pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
         # shark
@@ -176,7 +191,7 @@ class SnakeGameAI:
                     transition += 1
                     self.fish_list[fish_idx] = Point(current_fish.x, current_fish.y, transition)
                 else: # transition success
-                    self.fish_list[fish_idx] = Point(x_new, y_new, 0)
+                    self.fish_list[fish_idx] = Point(x_new, y_new, 0) # reset transition
             else: # boundary crossing 이 아닌 경우
-                self.fish_list[fish_idx] = Point(x_new, y_new, 0)
+                self.fish_list[fish_idx] = Point(x_new, y_new, 0) # reset transition
 
