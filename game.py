@@ -52,9 +52,12 @@ class SnakeGameAI:
 
         self.fish = Point(self.w / 2, self.h / 2, 0)
 
-        half_num = self.init_fish_num//2
+        # half_num = self.init_fish_num//2
+        #self.fish_list = [Point(self.w / 2 + BLOCK_SIZE*(i - half_num)*2 , self.h / 2 + BLOCK_SIZE*(i- half_num)*2, 0) for i in range(self.init_fish_num)]
 
-        self.fish_list = [Point(self.w / 2 + BLOCK_SIZE*(i - half_num)*2 , self.h / 2 + BLOCK_SIZE*(i- half_num)*2, 0) for i in range(self.init_fish_num)]
+        # Random position initialization
+        self.fish_list = [Point(BLOCK_SIZE * random.randint(self.w//(4*BLOCK_SIZE),3*self.w//(4*BLOCK_SIZE)), BLOCK_SIZE * random.randint(self.h//(4*BLOCK_SIZE),3*self.h//(4*BLOCK_SIZE)), 0) for i in
+         range(self.init_fish_num)]
 
         self.score = 0
         # self.food = None

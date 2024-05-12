@@ -108,7 +108,7 @@ class Agent:
 
     def get_action(self, state):
         # random moves: tradeoff btw exploration / exploitation
-        self.epsilon = 80 - self.n_games # parameter
+        self.epsilon = 40 - self.n_games # parameter # 원래는 80 - self.n_games
         final_move = [0,0,0,0]
         if random.randint(0,200) < self.epsilon:
             move = random.randint(0,3)
