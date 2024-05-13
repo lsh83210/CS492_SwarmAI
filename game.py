@@ -3,38 +3,16 @@ import random
 from collections import namedtuple
 import numpy as np
 from shark_brain import Shark
+from variables import *
 
 pygame.init()
 
-
 font = pygame.font.SysFont('arial', 25)
-
 
 Point = namedtuple('Point', 'x, y, transition')
 
-# rgb colors
-WHITE = (255, 255, 255)
-RED = (200, 0, 0)
-GREEN1 = (0, 250, 0)
-GREEN2 = (0, 200, 100)
-
-BLUE1 = (0, 0, 255)
-BLUE2 = (0, 100, 255)
-BLACK = (0, 0, 0)
-
-BLOCK_SIZE = 20
-SPEED = 20#60
-
-REWARD_EVERY_STEP = 1
-INITIAL_FISH_NUM = 10#5
-REWARD_GET_EATEN = -200//INITIAL_FISH_NUM # we want survival of at least 200 steps
-REWARD_FOOD = 100 # 없애도 되는 기능
-
-
-
 class SnakeGameAI:
-
-    def __init__(self, w=800, h=800): #w=640, h=640
+    def __init__(self, w=WIDTH, h=HEIGHT): #w=640, h=640
         self.w = w
         self.h = h
         self.transition_step = self.w//(4*BLOCK_SIZE)# must choose 'the same action that crosses the boundary' 5 times to cross the boundary
@@ -116,21 +94,6 @@ class SnakeGameAI:
             if fish.x == sharkx and fish.y == sharky:
                 self.fish_list.remove(fish)
 
-    def bound_less_domain(self, x,y): # danger information should be included
-        x_new = x
-        y_new = y
-
-        # hits boundary
-        if x > self.w - BLOCK_SIZE:
-            x_new = 0
-        elif x < 0 :
-            x_new = self.w - BLOCK_SIZE
-        if y > self.h - BLOCK_SIZE:
-            y_new = 0
-        elif y < 0:
-            y_new = self.h - BLOCK_SIZE
-        return x_new, y_new
-
     def collision_fish(self,x,y): # check collision among fish => no op
         for fish in self.fish_list:
             if fish.x == x and fish.y == y: # collision
@@ -187,14 +150,15 @@ class SnakeGameAI:
             if self.collision_fish(x,y): # new location collides with other fish
                 continue
 
-            x_new,y_new= self.bound_less_domain(x,y)
+            x_new,y_new= bound_less_domain(x,y)
             # bound 가장자리에서 왔다갔다 하며 상어에게 혼란을 주는것을 방지하기 위해 바운더리 이동시 몇 템포 이후(transition_step) 이동하게 함 (패널티)
-            if x != x_new or y != y_new:  # boundary crossing 인 경우
-                if transition < self.transition_step:  # wait
-                    transition += 1
-                    self.fish_list[fish_idx] = Point(current_fish.x, current_fish.y, transition)
-                else: # transition success
-                    self.fish_list[fish_idx] = Point(x_new, y_new, 0) # reset transition
-            else: # boundary crossing 이 아닌 경우
-                self.fish_list[fish_idx] = Point(x_new, y_new, 0) # reset transition
+            # if x != x_new or y != y_new:  # boundary crossing 인 경우
+            #     if transition < self.transition_step:  # wait
+            #         transition += 1
+            #         self.fish_list[fish_idx] = Point(current_fish.x, current_fish.y, transition)
+            #     else: # transition success
+            #         self.fish_list[fish_idx] = Point(x_new, y_new, 0) # reset transition
+            # else: # boundary crossing 이 아닌 경우
+            #     self.fish_list[fish_idx] = Point(x_new, y_new, 0) # reset transition
 
+            self.fish_list[fish_idx] = Point(x_new, y_new, 0) # reset transition

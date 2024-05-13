@@ -153,7 +153,7 @@ def train():
         reward, done, score = game.play_step(final_moves)
 
         # 1. 전부 다 업데이트 하는 방식
-        #state_news = []
+        # state_news = []
         # for i in range(len(game.fish_list)):
         #     cur_state_new = agent.get_state(game, i)
         #     state_news.append(cur_state_new)

@@ -19,11 +19,11 @@ If target is eaten by the shark, remove the target and goto 1 again.
 
 '''
 import random
-BLOCK_SIZE = 20
+from variables import *
 SHARK_MOVE_STEP = BLOCK_SIZE*2
 RULE_1_RADIUS = BLOCK_SIZE*4
 
-
+WIDTH, HEIGHT
 class Shark():
     def __init__(self):
         self.pos = [0,0]
@@ -37,8 +37,9 @@ class Shark():
             self.pos[pos_idx] += BLOCK_SIZE
         elif diff < 0:
             self.pos[pos_idx]-= BLOCK_SIZE
-        # else:
-        #     pass
+        # boundary check for shark
+        self.pos = list(bound_less_domain(self.pos[0], self.pos[1]))
+
     def check_target_alive(self, n):
         return self.target_fish_idx < n
 
