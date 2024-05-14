@@ -10,7 +10,7 @@ MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
 LR = 0.001
 
-PLOT_LEARNING = False
+PLOT_LEARNING = True
 
 '''
 - State
@@ -46,7 +46,7 @@ class Agent:
         self.n_games = 0
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate 0~1
-        self.memory = deque(maxlen=MAX_MEMORY) # popleft()
+        self.memory = deque(maxlen=MAX_MEMORY) # 꽉차면 popleft()
         self.model = Linear_QNet(2 + 2*(INITIAL_FISH_NUM-1),256,4) # 2(shark) + 2*(#fish - 1) input, 4 action outputs
         self.trainer = QTrainer(self.model, lr = LR, gamma = self.gamma)
 
@@ -203,15 +203,3 @@ def train():
 
 if __name__ == '__main__':
     train()
-
-
-
-
-
-
-
-
-
-
-
-
