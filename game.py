@@ -3,19 +3,18 @@ import random
 from collections import namedtuple
 import numpy as np
 from shark_brain import Shark
-from variables import *
+from variables_n_utils import *
 
 pygame.init()
 
 font = pygame.font.SysFont('arial', 25)
 
-Point = namedtuple('Point', 'x, y, transition')
+Point = namedtuple('Point', 'x, y, id')
 
 class SnakeGameAI:
     def __init__(self, w=WIDTH, h=HEIGHT): #w=640, h=640
         self.w = w
         self.h = h
-        self.transition_step = self.w//(4*BLOCK_SIZE)# must choose 'the same action that crosses the boundary' 5 times to cross the boundary
         # init display
         self.display = pygame.display.set_mode((self.w, self.h))
         pygame.display.set_caption('Swarm')
@@ -34,7 +33,7 @@ class SnakeGameAI:
         #self.fish_list = [Point(self.w / 2 + BLOCK_SIZE*(i - half_num)*2 , self.h / 2 + BLOCK_SIZE*(i- half_num)*2, 0) for i in range(self.init_fish_num)]
 
         # Random position initialization
-        self.fish_list = [Point(BLOCK_SIZE * random.randint(self.w//(4*BLOCK_SIZE),3*self.w//(4*BLOCK_SIZE)), BLOCK_SIZE * random.randint(self.h//(4*BLOCK_SIZE),3*self.h//(4*BLOCK_SIZE)), 0) for i in
+        self.fish_list = [Point(BLOCK_SIZE * random.randint(self.w//(4*BLOCK_SIZE),3*self.w//(4*BLOCK_SIZE)), BLOCK_SIZE * random.randint(self.h//(4*BLOCK_SIZE),3*self.h//(4*BLOCK_SIZE)), i) for i in
          range(self.init_fish_num)]
 
         self.score = 0
@@ -136,7 +135,6 @@ class SnakeGameAI:
             current_fish = self.fish_list[fish_idx]
             x = current_fish.x
             y = current_fish.y
-            transition = current_fish.transition
             # left down right up
             if np.array_equal(actions[fish_idx], [0,0,1,0]): # RIGHT
                 x += BLOCK_SIZE
@@ -151,14 +149,5 @@ class SnakeGameAI:
                 continue
 
             x_new,y_new= bound_less_domain(x,y)
-            # bound 가장자리에서 왔다갔다 하며 상어에게 혼란을 주는것을 방지하기 위해 바운더리 이동시 몇 템포 이후(transition_step) 이동하게 함 (패널티)
-            # if x != x_new or y != y_new:  # boundary crossing 인 경우
-            #     if transition < self.transition_step:  # wait
-            #         transition += 1
-            #         self.fish_list[fish_idx] = Point(current_fish.x, current_fish.y, transition)
-            #     else: # transition success
-            #         self.fish_list[fish_idx] = Point(x_new, y_new, 0) # reset transition
-            # else: # boundary crossing 이 아닌 경우
-            #     self.fish_list[fish_idx] = Point(x_new, y_new, 0) # reset transition
 
-            self.fish_list[fish_idx] = Point(x_new, y_new, 0) # reset transition
+            self.fish_list[fish_idx] = Point(x_new, y_new, current_fish.id)

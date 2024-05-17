@@ -7,6 +7,8 @@ from model import Linear_QNet, QTrainer
 from helper import plot
 import torch.nn as nn
 import torch.optim as optim
+from variables_n_utils import sort_by_distance
+
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
 LR_ACTOR = 0.001
@@ -89,20 +91,20 @@ class Agent:
         shark_x = shark.pos[0] - fish.x
         shark_y = shark.pos[1] - fish.y
 
+        # sort nearby fishes by distance and excludes the fish (me)
+        sorted_fish_list = sort_by_distance(game.fish_list, fish)
+
         # other fish's relative vector
         other_fish_state = []
-        for i in range(INITIAL_FISH_NUM): # 각 input의 위치가 list가 줄어듦에 따라 변할 수 있다. 그러나 각각의 물고기에 대한 가중치는 대칭적으로 동일해야 하기 때문에 이렇게 처리해도 괜찮아야 한다 (즉 물고기마다 특별하지 않다)
-            if i == fish_to_update: # skip me
+        for i in range(INITIAL_FISH_NUM-1): # 각 input의 위치가 list가 줄어듦에 따라 변할 수 있다. 그러나 각각의 물고기에 대한 가중치는 대칭적으로 동일해야 하기 때문에 이렇게 처리해도 괜찮아야 한다 (즉 물고기마다 특별하지 않다)
+            if (len(sorted_fish_list)<= i): #if current fish is dead => 없는거나 다름없게 state를 주자: 거리가 0 이도록 주면 된다. 그러면 물고기가 해당 물고기에게 다가가기 위해 이동할 필요가 없어지기 때문이다
+                other_fish_state.append(0)
+                other_fish_state.append(0)
                 continue
 
-            if (len(game.fish_list)<= i): #if current fish is dead => 없는거나 다름없게 state를 주자: 거리가 0 이도록 주면 된다. 그러면 물고기가 해당 물고기에게 다가가기 위해 이동할 필요가 없어지기 때문이다
-                other_fish_state.append(0)
-                other_fish_state.append(0)
-                
-            else:
-                friend_fish = game.fish_list[i]
-                other_fish_state.append(get_sign(friend_fish.x - fish.x))
-                other_fish_state.append(get_sign(friend_fish.y - fish.y))
+            friend_fish = sorted_fish_list[i]
+            other_fish_state.append(get_sign(friend_fish.x - fish.x))
+            other_fish_state.append(get_sign(friend_fish.y - fish.y))
 
         state = [
             # Danger: 현재 상어의 방향 부호만 줌
@@ -192,7 +194,6 @@ class MADDPGAgent(Agent):
     def train(self):
         if len(self.memory) < BATCH_SIZE:
             return
-
         mini_batch = random.sample(self.memory, BATCH_SIZE)
         for state, action, reward, next_state, done in mini_batch:
             state = torch.tensor(state, dtype=torch.float)

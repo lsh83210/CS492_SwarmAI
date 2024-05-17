@@ -20,12 +20,11 @@ If target is eaten by the shark, remove the target and goto 1 again.
 '''
 import random
 import math
-from variables import *
+from variables_n_utils import *
 
 SHARK_MOVE_STEP = BLOCK_SIZE*2
 RULE_1_RADIUS = BLOCK_SIZE*4
 
-WIDTH, HEIGHT
 class Shark():
     def __init__(self):
         self.pos = [0,0]
