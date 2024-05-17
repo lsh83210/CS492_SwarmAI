@@ -217,7 +217,7 @@ RULE_1_RADIUS = BLOCK_SIZE*4
 
 class SharkAgent(Agent):
     def __init__(self):
-        super().__init__(state_size=2*INITIAL_FISH_NUM, output_size=INITIAL_FISH_NUM)
+        super().__init__(state_size=2*INITIAL_FISH_NUM, output_size=INITIAL_FISH_NUM) # output is target idx
 
         ### Shark variable ###
         self.x = 0
@@ -296,11 +296,9 @@ class SharkAgent(Agent):
 
     def move(self, fish_list):
         # move towards the target twice
-        if self.check_target_alive(len(fish_list)) and self.measure_fish_size(
-                fish_list) < self.size:  # target fish alive and fish size smaller than myself
+        if self.check_target_alive(len(fish_list)):  # target fish alive and fish size smaller than myself
             target_fish = fish_list[self.target_fish_idx]
             self.get_close(target_fish)
-
         else:
             # self.x += random.randint(-1,1)*BLOCK_SIZE
             # self.y += random.randint(-1,1)*BLOCK_SIZE

@@ -63,12 +63,14 @@ class Critic(nn.Module):
         x = self.relu(self.fc2(x))
         return self.fc3(x)
 class Agent:
-    def __init__(self):
+    def __init__(self, state_size=0, output_size=4):
         self.n_games = 0
-        self.epsilon = 0 # randomness
-        self.gamma = 0.9 # discount rate 0~1
-        self.memory = deque(maxlen=MAX_MEMORY) # popleft()
-        self.model = Linear_QNet(2 + 2*(INITIAL_FISH_NUM-1),256,4) # 2(shark) + 2*(#fish - 1) input, 4 action outputs
+        self.epsilon = 0  # randomness
+        self.gamma = 0.9  # discount rate 0~1
+        self.memory = deque(maxlen=MAX_MEMORY)  # 꽉차면 popleft()
+        if state_size == 0:
+            state_size = 2 + 2 * (INITIAL_FISH_NUM - 1)
+        self.model = Linear_QNet(state_size, 256, output_size)  # 2(shark) + 2*(#fish - 1) input, 4 action outputs
         self.trainer = QTrainer(self.model, lr = LR_ACTOR, gamma = self.gamma)
 
     def reset(self):
