@@ -9,15 +9,24 @@ BLUE1 = (0, 0, 255)
 BLUE2 = (0, 100, 255)
 BLACK = (0, 0, 0)
 
+WIDTH, HEIGHT = 800,800
+
 BLOCK_SIZE = 20
 SPEED = 20#60
 
-REWARD_EVERY_STEP = 1
+# fish variable
 INITIAL_FISH_NUM = 10#5
+
+# rewards
+REWARD_EVERY_STEP = 1
 REWARD_GET_EATEN = -200//INITIAL_FISH_NUM # we want survival of at least 200 steps
 REWARD_FOOD = 100 # 없애도 되는 기능
+SHARK_REWARD_EATEN = 20
+SHARK_REWARD_EVERY_STEP = -1
 
-WIDTH, HEIGHT = 800,800
+# shark variable
+SHARK_MOVE_STEP = BLOCK_SIZE*2
+RULE_1_RADIUS = BLOCK_SIZE*4
 
 
 def bound_less_domain(x, y):  # danger information should be included

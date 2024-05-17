@@ -4,12 +4,16 @@ import torch.optim as optim
 import torch.nn.functional as F
 import os
 import numpy as np
+modelID = 0
 
 class Linear_QNet(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
         super().__init__()
         self.linear1 = nn.Linear(input_size, hidden_size)
         self.linear2 = nn.Linear(hidden_size, output_size)
+        global modelID
+        self.modelID = modelID
+        modelID += 1
 
     def forward(self, x):
         x = F.relu(self.linear1(x))
@@ -17,6 +21,7 @@ class Linear_QNet(nn.Module):
         return x
 
     def save(self, file_name = 'model.pth'):
+        file_name = 'model{}.pth'.format(self.modelID)
         model_folder_path = './model'
         if not os.path.exists(model_folder_path):
             os.makedirs(model_folder_path)
@@ -26,12 +31,13 @@ class Linear_QNet(nn.Module):
 
 class QTrainer:
 
-    def __init__(self,model,lr,gamma):
+    def __init__(self,model,lr,gamma, shark=False):
         self.lr = lr
         self.gamma = gamma
         self.model = model
         self.optimizer = optim.Adam(model.parameters(), lr = self.lr) # self.model.parameters() 안해도됨?
         self.criterion = nn.MSELoss()
+        self.shark = shark
 
     def train_step(self, state, action, reward, next_state, done): # should also handle multiple values
         state = torch.tensor(state, dtype=torch.float)
@@ -57,12 +63,25 @@ class QTrainer:
         # preds[argmax(action)] = Q_new
 
         target = pred.clone()
+        # if (len(done)>1):
+        #     print(pred )
+        #     print(action)
+
+
         for idx in range(len(done)):
             Q_new = reward[idx]
             if not done[idx]:
                 Q_new = reward[idx] + self.gamma * torch.max(self.model(next_state[idx]))
 
-            target[idx][torch.argmax(action).item()] = Q_new
+            ### SHARK AI ###
+            if self.shark: # for shark ai, we do not need argmax(action) since action is not [0,1,0,0] form, it is just a scala
+                target[idx][action] = Q_new
+                #print('out of index happened for shark')
+            else:
+                target[idx][torch.argmax(action).item()] = Q_new
+            ## SHARK AI ###
+
+
 
         # 3: loss
         self.optimizer.zero_grad()
@@ -70,4 +89,3 @@ class QTrainer:
         loss.backward()
 
         self.optimizer.step()
-
