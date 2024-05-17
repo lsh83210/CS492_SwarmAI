@@ -54,4 +54,11 @@ def sort_by_distance(entity_list, me): # sort by distance excluding the fish giv
     # => this might effect NN to get close to the furthest fish (to effectively survive as a whole)
     # return sorted(sorted_list, key=lambda entity: ((entity.x - me.x)**2 + (entity.y - me.y)**2), reverse=True)
 
+def get_sign(n):
+    if n>0:
+        return 1
+    elif n<0:
+        return -1
+    else:
+        return 0
 

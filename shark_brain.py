@@ -118,7 +118,6 @@ class Shark():
         # for idx in range(len(fish_list)):
         #     if idx == self.target_fish_idx:
         #         continue
-
         return fish_nearby + 1
 
     def reset_target(self, fish_list):

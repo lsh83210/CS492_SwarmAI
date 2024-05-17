@@ -5,7 +5,7 @@ from collections import deque # store memory
 from game import SnakeGameAI, INITIAL_FISH_NUM
 from model import Linear_QNet, QTrainer
 from helper import plot
-from variables_n_utils import sort_by_distance
+from variables_n_utils import sort_by_distance,get_sign
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
@@ -22,16 +22,6 @@ Other agent's direction
 move up/down/left/right
 
 
-'''
-def get_sign(n):
-    if n>0:
-        return 1
-    elif n<0:
-        return -1
-    else:
-        return 0
-
-'''
 Agent를 train할때 필요한 함수들을 모음
 실제 agent는 game.py에 구현되어 있음
 
