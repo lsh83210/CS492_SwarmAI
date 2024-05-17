@@ -91,6 +91,8 @@ class Shark():
     # RULE 1. A lot of nearby fish
     # RULE 2. Projected view's length (maximum difference of the connected fishes are larger than shark size)
 
+
+
     def measure_fish_size(self, fish_list):
         # RULE 1
         target_fish = fish_list[self.target_fish_idx]
@@ -102,7 +104,12 @@ class Shark():
                 continue
             cur_fish = fish_list[idx]
             
-            distance = math.sqrt((x - cur_fish.x) ** 2 + (y - cur_fish.y) ** 2)
+            # distance = math.sqrt((x - cur_fish.x) ** 2 + (y - cur_fish.y) ** 2)
+            # bound를 넘어갔을 때 처리
+            dx = min(abs(x - cur_fish.x), WIDTH - abs(x - cur_fish.x))
+            dy = min(abs(y - cur_fish.y), HEIGHT - abs(y - cur_fish.y))
+            distance = math.sqrt(dx ** 2 + dy ** 2)
+            
             if distance <= RULE_1_RADIUS:
                 fish_nearby += 1
             # if abs(x - cur_fish.x) <= RULE_1_RADIUS and abs(y - cur_fish.y) <= RULE_1_RADIUS:
