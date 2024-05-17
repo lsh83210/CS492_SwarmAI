@@ -27,23 +27,16 @@ RULE_1_RADIUS = BLOCK_SIZE*4
 
 class Shark():
     def __init__(self):
-        self.pos = [0,0]
+        self.x = 0
+        self.y = 0
         self.target_fish_idx = 0
         self.size = 3 # size threshold
         self.target_reset_cooltime = 10 # cannot change target for 5 attempts
         self.target_reset_count = 0
 
-    # def get_close(self, pos_idx, diff):
-    #     if diff > 0:
-    #         self.pos[pos_idx] += BLOCK_SIZE
-    #     elif diff < 0:
-    #         self.pos[pos_idx]-= BLOCK_SIZE
-    #     # boundary check for shark
-    #     self.pos = list(bound_less_domain(self.pos[0], self.pos[1]))
-    
     def get_close(self, target_fish): # target fish를 인자로 받도록 수정
-        dx = target_fish.x - self.pos[0]
-        dy = target_fish.y - self.pos[1]
+        dx = target_fish.x - self.x
+        dy = target_fish.y - self.y
         
         # 맵의 경계를 지나가는 것이 더 가까운 경우에 대한 처리
         if (abs(dx) > WIDTH // 2):
@@ -61,10 +54,10 @@ class Shark():
             move_y = BLOCK_SIZE
             
         # x, y의 부호를 결정
-        self.pos[0] += move_x * (1 if dx > 0 else -1)
-        self.pos[1] += move_y * (1 if dy > 0 else -1)
+        self.x += move_x * (1 if dx > 0 else -1)
+        self.y += move_y * (1 if dy > 0 else -1)
         
-        self.pos = list(bound_less_domain(self.pos[0], self.pos[1]))
+        self.x,self.y = bound_less_domain(self.x, self.y)
         
 
     def check_target_alive(self, n):
@@ -74,13 +67,11 @@ class Shark():
         # move towards the target twice
         if self.check_target_alive(len(fish_list)) and self.measure_fish_size(fish_list) < self.size: # target fish alive and fish size smaller than myself
             target_fish = fish_list[self.target_fish_idx]
-            # self.get_close(0, target_fish.x - self.pos[0])
-            # self.get_close(1, target_fish.y - self.pos[1])
             self.get_close(target_fish)
 
         else:
-            # self.pos[0] += random.randint(-1,1)*BLOCK_SIZE
-            # self.pos[1] += random.randint(-1,1)*BLOCK_SIZE
+            # self.x += random.randint(-1,1)*BLOCK_SIZE
+            # self.y += random.randint(-1,1)*BLOCK_SIZE
             if self.target_reset_count == self.target_reset_cooltime:
                 self.reset_target(fish_list)
                 self.target_reset_count = 0
@@ -89,8 +80,6 @@ class Shark():
 
     # RULE 1. A lot of nearby fish
     # RULE 2. Projected view's length (maximum difference of the connected fishes are larger than shark size)
-
-
 
     def measure_fish_size(self, fish_list):
         # RULE 1

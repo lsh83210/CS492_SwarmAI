@@ -20,12 +20,16 @@ class SnakeGameAI:
         pygame.display.set_caption('Swarm')
         self.clock = pygame.time.Clock()
         self.shark = Shark()
+        # To use shark agent
+        # self.shark = SharkAgent()
+
         self.init_fish_num = INITIAL_FISH_NUM
         self.reset()
 
     def reset(self):
         # init game state
-        self.shark.pos = [0,0]
+        self.shark.x=0
+        self.shark.y=0
 
         self.fish = Point(self.w / 2, self.h / 2, 0)
 
@@ -87,8 +91,8 @@ class SnakeGameAI:
         # 6. return game over and score
         return reward, game_over, self.score
     def check_eaten(self):
-        sharkx = self.shark.pos[0]
-        sharky = self.shark.pos[1]
+        sharkx = self.shark.x
+        sharky = self.shark.y
         for fish in self.fish_list:
             if fish.x == sharkx and fish.y == sharky:
                 self.fish_list.remove(fish)
@@ -123,8 +127,8 @@ class SnakeGameAI:
         # food
         # pygame.draw.rect(self.display, RED, pygame.Rect(self.food.x, self.food.y, BLOCK_SIZE, BLOCK_SIZE))
         # shark
-        pygame.draw.rect(self.display, BLUE1, pygame.Rect(self.shark.pos[0], self.shark.pos[1], BLOCK_SIZE, BLOCK_SIZE))
-        pygame.draw.rect(self.display, BLUE2, pygame.Rect(self.shark.pos[0]+4, self.shark.pos[1]+4, 12, 12))
+        pygame.draw.rect(self.display, BLUE1, pygame.Rect(self.shark.x, self.shark.y, BLOCK_SIZE, BLOCK_SIZE))
+        pygame.draw.rect(self.display, BLUE2, pygame.Rect(self.shark.x+4, self.shark.y+4, 12, 12))
 
         text = font.render("Score: " + str(self.score), True, WHITE)
         self.display.blit(text, [0, 0])

@@ -77,8 +77,8 @@ class Agent:
     def get_state(self, game, fish_to_update): # game 으로부터 agent의 state를 계산
         fish = game.fish_list[fish_to_update]
         shark = game.shark
-        shark_x = shark.pos[0] - fish.x
-        shark_y = shark.pos[1] - fish.y
+        shark_x = shark.x - fish.x
+        shark_y = shark.y - fish.y
 
         # sort nearby fishes by distance and excludes the fish (me)
         sorted_fish_list = sort_by_distance(game.fish_list, fish)

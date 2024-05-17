@@ -5,7 +5,7 @@ from collections import deque # store memory
 from game import SnakeGameAI, INITIAL_FISH_NUM
 from model import Linear_QNet, QTrainer
 from helper import plot
-from variables_n_utils import sort_by_distance,get_sign
+from variables_n_utils import *
 
 MAX_MEMORY = 100_000
 BATCH_SIZE = 1000
@@ -33,12 +33,14 @@ state:
 - observed state: relative coordinates of other fish / shark
 '''
 class Agent:
-    def __init__(self):
+    def __init__(self, state_size = 0, output_size = 4):
         self.n_games = 0
         self.epsilon = 0 # randomness
         self.gamma = 0.9 # discount rate 0~1
         self.memory = deque(maxlen=MAX_MEMORY) # 꽉차면 popleft()
-        self.model = Linear_QNet(2 + 2*(INITIAL_FISH_NUM-1),256,4) # 2(shark) + 2*(#fish - 1) input, 4 action outputs
+        if state_size == 0:
+            state_size = 2 + 2*(INITIAL_FISH_NUM-1)
+        self.model = Linear_QNet(state_size,256,output_size) # 2(shark) + 2*(#fish - 1) input, 4 action outputs
         self.trainer = QTrainer(self.model, lr = LR, gamma = self.gamma)
 
     def reset(self):
@@ -47,8 +49,8 @@ class Agent:
     def get_state(self, game, fish_to_update): # game 으로부터 agent의 state를 계산
         fish = game.fish_list[fish_to_update]
         shark = game.shark
-        shark_x = shark.pos[0] - fish.x
-        shark_y = shark.pos[1] - fish.y
+        shark_x = shark.x - fish.x
+        shark_y = shark.y - fish.y
 
         # sort nearby fishes by distance and excludes the fish (me)
         sorted_fish_list = sort_by_distance(game.fish_list, fish)
@@ -194,3 +196,122 @@ def train():
 
 if __name__ == '__main__':
     train()
+
+
+############################# SHARK AI (if needed) #############################
+
+'''
+WARNING: 
+In this case, shark does not limit itself to seek a little swarm. 
+Hence, there may need to be some benefit of flocking for fish which model should provide. 
+
+
+- State
+fish's direction
+- Action
+choose the target fish using neural net
+then, move toward that fish
+'''
+SHARK_MOVE_STEP = BLOCK_SIZE*2
+RULE_1_RADIUS = BLOCK_SIZE*4
+
+class SharkAgent(Agent):
+    def __init__(self):
+        super().__init__(state_size=2*INITIAL_FISH_NUM, output_size=INITIAL_FISH_NUM)
+
+        ### Shark variable ###
+        self.x = 0
+        self.y = 0
+        self.target_fish_idx = 0
+        self.size = 3 # size threshold
+        self.target_reset_cooltime = 10 # cannot change target for 5 attempts
+        self.target_reset_count = 0
+        self.id = -1 # not a fish
+
+    def reset(self):
+        pass
+
+    def get_state(self, game, fish_to_update): # game 으로부터 agent의 state를 계산
+        # sort nearby fishes by distance and excludes the fish (me)
+        sorted_fish_list = sort_by_distance(game.fish_list, self)
+        x,y = self.x,self.y
+        # other fish's relative vector
+        state = []
+        for i in range(INITIAL_FISH_NUM):
+            if (len(sorted_fish_list)<= i): #if current fish is dead => 없는거나 다름없게 state를 주자: 거리가 0 이도록 주면 된다. 그러면 물고기가 해당 물고기에게 다가가기 위해 이동할 필요가 없어지기 때문이다
+                state.append(0)
+                state.append(0)
+                continue
+            fish = sorted_fish_list[i]
+            state.append(get_sign(fish.x - x))
+            state.append(get_sign(fish.y - y))
+
+        return np.array(state, dtype = int) # float로 바꾸려면 dtype=float
+
+    def get_action(self, state):
+        # random moves: tradeoff btw exploration / exploitation
+        self.epsilon = 40 - self.n_games # parameter # 원래는 80 - self.n_games
+
+        final_move = [0,0,0,0]
+        if random.randint(0,200) < self.epsilon:
+            move = random.randint(0,3)
+            final_move[move] = 1
+        else:
+            state0 = torch.tensor(state, dtype=torch.float)
+            prediction = self.model(state0) # execute forward function in the model
+            move = torch.argmax(prediction).item() # convert to only one number = item
+            final_move[move] = 1
+
+        return final_move
+
+    ######################### shark behavior functions ###############################
+
+    def get_close(self, target_fish):  # target fish를 인자로 받도록 수정
+        dx = target_fish.x - self.x
+        dy = target_fish.y - self.y
+
+        # 맵의 경계를 지나가는 것이 더 가까운 경우에 대한 처리
+        if (abs(dx) > WIDTH // 2):
+            dx = dx - WIDTH if dx > 0 else dx + WIDTH
+        if (abs(dy) > HEIGHT // 2):
+            dy = dy - HEIGHT if dy > 0 else dy + HEIGHT
+
+        # 절대값을 보고 x, y의 스칼라 값만 먼저 결정
+        move_x = SHARK_MOVE_STEP if abs(dx) > abs(dy) else BLOCK_SIZE if dx != 0 else 0
+        move_y = SHARK_MOVE_STEP if abs(dy) > abs(dx) else BLOCK_SIZE if dy != 0 else 0
+
+        # 대각선으로 움직여야 하지만 shark_move_step을 넘어가면 안됨 -> x, y의 값을 1로 조정
+        if move_x + move_y > SHARK_MOVE_STEP:
+            move_x = BLOCK_SIZE
+            move_y = BLOCK_SIZE
+
+        # x, y의 부호를 결정
+        self.x += move_x * (1 if dx > 0 else -1)
+        self.y += move_y * (1 if dy > 0 else -1)
+
+        self.x, self.y = bound_less_domain(self.x, self.y)
+
+    def check_target_alive(self, n):
+        return self.target_fish_idx < n
+
+    def move(self, fish_list):
+        # move towards the target twice
+        if self.check_target_alive(len(fish_list)) and self.measure_fish_size(
+                fish_list) < self.size:  # target fish alive and fish size smaller than myself
+            target_fish = fish_list[self.target_fish_idx]
+            self.get_close(target_fish)
+
+        else:
+            # self.x += random.randint(-1,1)*BLOCK_SIZE
+            # self.y += random.randint(-1,1)*BLOCK_SIZE
+            if self.target_reset_count == self.target_reset_cooltime:
+                self.reset_target(fish_list)
+                self.target_reset_count = 0
+            else:
+                self.target_reset_count += 1
+
+
+    def reset_target(self, fish_list):
+        self.target_fish_idx = random.randint(0, len(fish_list) - 1)
+        # print('target reset to ', self.target_fish_idx)
+
