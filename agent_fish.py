@@ -313,7 +313,7 @@ def train():
     plot_scores = []
     plot_mean_scores = []
     total_score = 0
-    record = 0  # best score
+    record = -999  # best score
     agent = Agent()
     game = SnakeGameAI()
     while True:

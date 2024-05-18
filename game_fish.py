@@ -153,7 +153,7 @@ class SnakeGameAI:
 
     def play_step(self, actions): # get actions from the agent
         self.frame_iteration += 1
-        self.score = self.frame_iteration
+        # self.score = self.frame_iteration
         # 1. collect user input
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -189,6 +189,7 @@ class SnakeGameAI:
         # 5. update ui and clock
         self._update_ui()
         self.clock.tick(SPEED)
+        self.score += reward
         # 6. return game over and score
         return reward, game_over, self.score
     
