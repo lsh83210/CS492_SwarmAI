@@ -168,7 +168,7 @@ class SnakeGameAI:
         # 잡아먹히면 보상 -1
         reward = 0  
         if self.check_eaten():
-            reward = -1  # 물고기가 잡아먹혔을 때 보상은 -1
+            reward = -1  # 물고기가 잡아먹혔을 때 보상은 -1sad
 
         # 4. check if game over
         # reward = REWARD_EVERY_STEP # +1 for every step
