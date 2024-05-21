@@ -2,7 +2,7 @@ import torch
 import random
 import numpy as np
 from collections import deque # store memory
-from game import SnakeGameAI, INITIAL_FISH_NUM
+from game_fish import SnakeGameAI, INITIAL_FISH_NUM
 from model import Linear_QNet, QTrainer
 from helper import plot
 import torch.nn as nn
